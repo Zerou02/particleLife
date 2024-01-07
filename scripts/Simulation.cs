@@ -124,67 +124,80 @@ public class Simulation
             {
                 if (j == i) { continue; }
                 //positionsX[j] - positionsX[i];
-                //positionsY[j] - positionsY[i];class* f;
-                totalForceY += ry / r * f;
-                totalForceZ += rz / r * f;
+                //positionsY[j] - positionsY[i];
+                //positionsZ[j] - positionsZ[i];
+                double rx = particles[j].position.X - particles[i].position.X;
+                double ry = particles[j].position.Y - particles[i].position.Y;
+                double rz = particles[j].position.Z - particles[i].position.Z;
+                double r = Math.Sqrt(rx * rx + ry * ry + rz * rz);
+                if (r > 0 && r < config.rMax)
+                {
+                    double f = force(r / config.rMax, config.matrix[particles[i].colour][particles[j].colour]);
+                    //double f = force(r / config.rMax, config.matrix[colours[i]][colours[j]]);
+                    totalForceX += rx / r * f;
+                    totalForceY += ry / r * f;
+                    totalForceZ += rz / r * f;
 
+                }
             }
+            totalForceX *= config.rMax;
+            totalForceY *= config.rMax;
+            totalForceZ *= config.rMax;
+
+            //particles[i].velocity *= (float)config.frictionFactor;
+            var newX = particles[i].velocity.X + (float)(totalForceX * config.dt) * (float)config.frictionFactor;
+            var newY = particles[i].velocity.Y + (float)(totalForceY * config.dt) * (float)config.frictionFactor;
+            var newZ = particles[i].velocity.Z + (float)(totalForceZ * config.dt) * (float)config.frictionFactor;
+            particles[i] = new Particle(particles[i].position, new Vector3(newX, newY, newZ), particles[i].colour);
+            //.velocity = new Vector3(newX, newY, newZ);
+            //velocitiesX[i] *= config.frictionFactor;
+            //velocitiesY[i] *= config.frictionFactor;
+            //velocitiesZ[i] *= config.frictionFactor;
+            //velocitiesX[i] += totalForceX * config.dt;
+            //velocitiesY[i] += totalForceY * config.dt;
+            //velocitiesZ[i] += totalForceZ * config.dt;
         }
-        totalForceX *= config.rMax;
-        totalForceY *= config.rMax;
-        totalForceZ *= config.rMax;
-
-        particles[i].velocity *= (float)config.frictionFactor;
-        particles[i].velocity.X += (float)(totalForceX * config.dt);
-        particles[i].velocity.Y += (float)(totalForceX * config.dt);
-        particles[i].velocity.Z += (float)(totalForceX * config.dt);
-        //velocitiesX[i] *= config.frictionFactor;
-        //velocitiesY[i] *= config.frictionFactor;
-        //velocitiesZ[i] *= config.frictionFactor;
-        //velocitiesX[i] += totalForceX * config.dt;
-        //velocitiesY[i] += totalForceY * config.dt;
-        //velocitiesZ[i] += totalForceZ * config.dt;
-    }
         //update pos
-        for (int i = 0; i<config.n; i++)
+        for (int i = 0; i < config.n; i++)
         {
-            particles[i].position.X += (float) (particles[i].velocity.X* config.dt);
-    particles[i].position.Y += (float) (particles[i].velocity.Y* config.dt);
-    particles[i].position.Z += (float) (particles[i].velocity.Z* config.dt);
-    //positionsX[i] += velocitiesX[i] * config.dt;
-    //positionsY[i] += velocitiesY[i] * config.dt;
-    //positionsZ[i] += velocitiesZ[i] * config.dt;
+            var newPosX = particles[i].position.X + (float)(particles[i].velocity.X * config.dt);
+            var newPosY = particles[i].position.Y + (float)(particles[i].velocity.Y * config.dt);
+            var newPosZ = particles[i].position.Z + (float)(particles[i].velocity.Z * config.dt);
+            particles[i] = new Particle(new Vector3(newPosX, newPosY, newPosZ), particles[i].velocity, particles[i].colour);
+            //positionsX[i] += velocitiesX[i] * config.dt;
+            //positionsY[i] += velocitiesY[i] * config.dt;
+            //positionsZ[i] += velocitiesZ[i] * config.dt;
 
-}
+        }
     }
 
     public void changeRadiusTo(double val)
-{
-    this.config.rMax = val;
-}
-
-public void changeSpeedTo(double val)
-{
-    this.config.dt = val;
-}
-
-public void changeParticleTypesTo(int amount)
-{
-    this.config.amountColours = amount;
-    initSim();
-}
-
-public void changeAmountParticlesTo(int amount)
-{
-    if (amount > config.n)
     {
-        addParticle(amount - config.n);
+        this.config.rMax = val;
     }
-    else
+
+    public void changeSpeedTo(double val)
     {
-        removeParticles(config.n - amount);
+        this.config.dt = val;
     }
-    config.n = amount;
-}
+
+    public void changeParticleTypesTo(int amount)
+    {
+        this.config.amountColours = amount;
+        initSim();
+    }
+
+    public void changeAmountParticlesTo(int amount)
+    {
+        if (amount > config.n)
+        {
+            addParticle(amount - config.n);
+        }
+        else
+        {
+            removeParticles(config.n - amount);
+        }
+        config.n = amount;
+    }
 
 }

@@ -1,5 +1,5 @@
 using Godot;
-public class Particle
+public struct Particle
 {
     public Vector3 position;
     public Vector3 velocity;
