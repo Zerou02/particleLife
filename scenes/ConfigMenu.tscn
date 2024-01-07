@@ -1,0 +1,57 @@
+[gd_scene load_steps=3 format=3 uid="uid://b518p2cxxvfm2"]
+
+[ext_resource type="Script" path="res://scenes/ConfigMenu.cs" id="1_2711p"]
+[ext_resource type="PackedScene" uid="uid://b8fig65fws3dj" path="res://scenes/LabledSlider.tscn" id="1_hjk24"]
+
+[node name="ConfigMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_2711p")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.301961, 0.301961, 0.301961, 1)
+
+[node name="AmountParticles" parent="." instance=ExtResource("1_hjk24")]
+layout_mode = 1
+anchors_preset = -1
+anchor_bottom = 0.25
+grow_horizontal = 1
+grow_vertical = 1
+max = 3000.0
+startVal = 1000.0
+
+[node name="Speed" parent="." instance=ExtResource("1_hjk24")]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.25
+anchor_bottom = 0.5
+step = 0.01
+max = 0.1
+startVal = 0.02
+
+[node name="Particle Types" parent="." instance=ExtResource("1_hjk24")]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.5
+anchor_bottom = 0.75
+min = 1.0
+max = 10.0
+startVal = 6.0
+
+[node name="Effective Distance" parent="." instance=ExtResource("1_hjk24")]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.75
+step = 0.1
+max = 2.0
+startVal = 0.4

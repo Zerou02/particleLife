@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3 uid="uid://uwsf82fsraj6"]
+
+[ext_resource type="Script" path="res://scripts/CameraTest.gd" id="1_okawa"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_swhiw"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_5q5r4"]
+
+[node name="RigidBody3D" type="RigidBody3D"]
+script = ExtResource("1_okawa")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_swhiw")
+skeleton = NodePath("../CollisionShape3D")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_5q5r4")

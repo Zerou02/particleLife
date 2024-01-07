@@ -1,0 +1,39 @@
+[gd_scene load_steps=3 format=3 uid="uid://6wwkqrhsm06q"]
+
+[ext_resource type="Script" path="res://scripts/Matrix.cs" id="1_ljuym"]
+[ext_resource type="Script" path="res://scripts/GridDrawOverlay.cs" id="2_vrwbj"]
+
+[node name="Matrix" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_ljuym")
+
+[node name="Grid" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GridDrawOverlay" type="Control" parent="."]
+visible = false
+z_index = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_vrwbj")
+
+[node name="TileOverlayAnchor" type="Control" parent="."]
+layout_mode = 1
+anchor_right = 0.424
+anchor_bottom = 0.395
+mouse_filter = 2

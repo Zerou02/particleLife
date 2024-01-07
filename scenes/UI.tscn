@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3 uid="uid://o0m4iinyteq0"]
+
+[ext_resource type="PackedScene" uid="uid://6wwkqrhsm06q" path="res://scenes/Matrix.tscn" id="1_358tq"]
+[ext_resource type="Script" path="res://scenes/UI.cs" id="1_r61yj"]
+[ext_resource type="PackedScene" uid="uid://b518p2cxxvfm2" path="res://scenes/ConfigMenu.tscn" id="1_u3tw4"]
+
+[node name="UI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_r61yj")
+
+[node name="ConfigMenu" parent="." instance=ExtResource("1_u3tw4")]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.394
+anchor_bottom = 0.694
+
+[node name="Matrix" parent="." instance=ExtResource("1_358tq")]
+layout_mode = 1
+anchors_preset = -1
+anchor_bottom = 0.397

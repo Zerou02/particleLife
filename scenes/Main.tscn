@@ -1,0 +1,43 @@
+[gd_scene load_steps=8 format=3 uid="uid://b1qhdg03q466c"]
+
+[ext_resource type="Script" path="res://scripts/Main.cs" id="1_1m4t7"]
+[ext_resource type="Script" path="res://scripts/Camera.cs" id="2_8sah6"]
+[ext_resource type="PackedScene" uid="uid://o0m4iinyteq0" path="res://scenes/UI.tscn" id="3_cse0n"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_h04pk"]
+sky_top_color = Color(0.396078, 0.407843, 0.733333, 1)
+ground_bottom_color = Color(0.239216, 0.368627, 0.160784, 1)
+
+[sub_resource type="Sky" id="Sky_6r206"]
+sky_material = SubResource("ProceduralSkyMaterial_h04pk")
+
+[sub_resource type="Environment" id="Environment_nyimr"]
+background_mode = 2
+sky = SubResource("Sky_6r206")
+glow_enabled = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_km5cq"]
+flip_faces = true
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_1m4t7")
+
+[node name="BallPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0899267, -0.145412, 0.175279)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_nyimr")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.5, 2)
+script = ExtResource("2_8sah6")
+
+[node name="SimBox" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_km5cq")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00830662, 2.11854, 3.34847)
+
+[node name="UI" parent="." instance=ExtResource("3_cse0n")]
+anchors_preset = -1
+anchor_right = 0.353

@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://htveiyl64bcv"]
+
+[ext_resource type="Script" path="res://scenes/FontSizeResizingLable.cs" id="1_cdhyk"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_5sd4v"]
+
+[node name="Label" type="Label"]
+custom_minimum_size = Vector2(139, 23)
+anchors_preset = -1
+anchor_right = 0.69
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "Amount Particles:"
+label_settings = SubResource("LabelSettings_5sd4v")
+script = ExtResource("1_cdhyk")

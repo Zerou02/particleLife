@@ -1,0 +1,7 @@
+Raylib
+FIB => 34
+KREISE => 10_000
+Godot
+FIB => 41
+KREISE => 1000
+Meshe => 4300-4800

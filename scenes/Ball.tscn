@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=3 uid="uid://bcg8mh3loe34v"]
+
+[ext_resource type="Script" path="res://scripts/Ball.cs" id="1_m23xq"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_52w30"]
+albedo_color = Color(0.827451, 0, 0.00784314, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_vilo4"]
+material = SubResource("StandardMaterial3D_52w30")
+
+[node name="Ball" type="MeshInstance3D"]
+transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0, 0)
+mesh = SubResource("SphereMesh_vilo4")
+script = ExtResource("1_m23xq")
