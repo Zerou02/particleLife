@@ -28,12 +28,12 @@ public partial class Main : Node3D
 
 	public void addBalls()
 	{
-		for (int i = 0; i < simulation.positionsZ.Count; i++)
+		for (int i = 0; i < simulation.particles.Count; i++)
 		{
 			var x = ball.Instantiate<Ball>();
 			balls.Add(x);
 			var l = new StandardMaterial3D();
-			l.AlbedoColor = simulation.colourVals[simulation.colours[i]];
+			l.AlbedoColor = simulation.colourVals[simulation.particles[i].colour];
 			x.SetSurfaceOverrideMaterial(0, l);
 			ballPivot.AddChild(x);
 		}
@@ -88,7 +88,8 @@ public partial class Main : Node3D
 		}
 		for (int i = 0; i < balls.Count; i++)
 		{
-			balls[i].Position = Position with { X = (float)simulation.positionsX[i], Y = (float)simulation.positionsY[i], Z = (float)simulation.positionsZ[i], };
+			var pos = simulation.particles[i].position;
+			balls[i].Position = Position with { X = pos.X, Y = pos.Y, Z = pos.Z, };
 		}
 	}
 }
