@@ -1,22 +1,24 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using System.Reflection.Metadata.Ecma335;
 using Godot;
 public class Simulation
 {
-    /*     public List<int> colours = new List<int>();
-        public List<double> positionsX = new List<double>();
-        public List<double> positionsY = new List<double>();
-        public List<double> positionsZ = new List<double>();
-        public List<double> velocitiesX = new List<double>();
-        public List<double> velocitiesY = new List<double>();
-        public List<double> velocitiesZ = new List<double>(); */
     public List<Particle> particles = new List<Particle>();
     public List<Color> colourVals = new List<Color>() { new Color("red"), new Color("blue"), new Color("green"), new Color("purple"), new Color("orange"), new Color("black") };
     public Config config;
+    public SpatialHashGrid spatialHashGrid;
+
+    Vector3 pivot = new Vector3(0, 0, 0);
+    Vector3 dim = new Vector3(1, 1, 1);
+
+    int scale = 2;
     public Simulation()
     {
         config = new Config();
+        dim *= scale;
+        config.rMax *= (scale);
+        spatialHashGrid = new SpatialHashGrid(new Vector3(1, 1, 1), dim, pivot, config.rMax);
         initSim();
     }
 
@@ -44,42 +46,28 @@ public class Simulation
         {
             var colour = random.Next(config.amountColours);
             Vector3 position = Vector3.Zero;
-            position.X = (float)random.NextDouble(); // * 2 - 1;
-            position.Y = (float)random.NextDouble(); // * 2 - 1;
-            position.Z = (float)random.NextDouble(); // * 2 - 1;
+            position.X = (float)random.NextDouble() * scale; // * 2 - 1;
+            position.Y = (float)random.NextDouble() * scale; // * 2 - 1;
+            position.Z = (float)random.NextDouble() * scale; // * 2 - 1;
             Vector3 velocity = Vector3.Zero;
             velocity.X = 0;
             velocity.Y = 0;
             velocity.Z = 0;
-            particles.Add(new Particle(position, velocity, colour));
+            var newParticle = new Particle(position, velocity, colour);
+            particles.Add(newParticle);
+            spatialHashGrid.addToGrid(newParticle);
         }
     }
 
     void removeParticles(int amount)
     {
         particles.RemoveRange(particles.Count - amount, amount);
-        /*    colours.RemoveRange(colours.Count - amount, amount);
-           positionsX.RemoveRange(positionsX.Count - amount, amount);
-           positionsY.RemoveRange(positionsY.Count - amount, amount);
-           positionsZ.RemoveRange(positionsZ.Count - amount, amount);
-           velocitiesX.RemoveRange(velocitiesX.Count - amount, amount);
-           velocitiesY.RemoveRange(velocitiesY.Count - amount, amount);
-           velocitiesZ.RemoveRange(velocitiesZ.Count - amount, amount);
-           GD.Print("COUNT", positionsX.Count); */
-        GD.Print("n", config.n);
 
     }
 
     void clearSim()
     {
         particles = new List<Particle>();
-        /* colours = new List<int>();
-        positionsX = new List<double>();
-        positionsY = new List<double>();
-        positionsZ = new List<double>();
-        velocitiesX = new List<double>();
-        velocitiesY = new List<double>();
-        velocitiesZ = new List<double>(); */
     }
 
     public void printMatrix()
@@ -113,27 +101,25 @@ public class Simulation
     }
     public void step()
     {
-        //update vel
         for (int i = 0; i < config.n; i++)
         {
             double totalForceX = 0;
             double totalForceY = 0;
             double totalForceZ = 0;
 
-            for (int j = 0; j < config.n; j++)
+            var b = spatialHashGrid.findNearbyClients(particles[i]);
+            GD.Print(b.Count);
+            foreach (var j in b)
             {
-                if (j == i) { continue; }
-                //positionsX[j] - positionsX[i];
-                //positionsY[j] - positionsY[i];
-                //positionsZ[j] - positionsZ[i];
-                double rx = particles[j].position.X - particles[i].position.X;
-                double ry = particles[j].position.Y - particles[i].position.Y;
-                double rz = particles[j].position.Z - particles[i].position.Z;
+                if (j.id == particles[i].id) { continue; }
+
+                double rx = j.position.X - particles[i].position.X;
+                double ry = j.position.Y - particles[i].position.Y;
+                double rz = j.position.Z - particles[i].position.Z;
                 double r = Math.Sqrt(rx * rx + ry * ry + rz * rz);
                 if (r > 0 && r < config.rMax)
                 {
-                    double f = force(r / config.rMax, config.matrix[particles[i].colour][particles[j].colour]);
-                    //double f = force(r / config.rMax, config.matrix[colours[i]][colours[j]]);
+                    double f = force(r / config.rMax, config.matrix[particles[i].colour][j.colour]);
                     totalForceX += rx / r * f;
                     totalForceY += ry / r * f;
                     totalForceZ += rz / r * f;
@@ -144,30 +130,33 @@ public class Simulation
             totalForceY *= config.rMax;
             totalForceZ *= config.rMax;
 
-            //particles[i].velocity *= (float)config.frictionFactor;
-            var newX = particles[i].velocity.X + (float)(totalForceX * config.dt) * (float)config.frictionFactor;
-            var newY = particles[i].velocity.Y + (float)(totalForceY * config.dt) * (float)config.frictionFactor;
-            var newZ = particles[i].velocity.Z + (float)(totalForceZ * config.dt) * (float)config.frictionFactor;
-            particles[i] = new Particle(particles[i].position, new Vector3(newX, newY, newZ), particles[i].colour);
-            //.velocity = new Vector3(newX, newY, newZ);
-            //velocitiesX[i] *= config.frictionFactor;
-            //velocitiesY[i] *= config.frictionFactor;
-            //velocitiesZ[i] *= config.frictionFactor;
-            //velocitiesX[i] += totalForceX * config.dt;
-            //velocitiesY[i] += totalForceY * config.dt;
-            //velocitiesZ[i] += totalForceZ * config.dt;
+            var newX = particles[i].velocity.X * (float)config.frictionFactor;
+            var newY = particles[i].velocity.Y * (float)config.frictionFactor;
+            var newZ = particles[i].velocity.Z * (float)config.frictionFactor;
+
+            newX += (float)(totalForceX * config.dt);
+            newY += (float)(totalForceY * config.dt);
+            newZ += (float)(totalForceZ * config.dt);
+            particles[i].velocity = new Vector3(newX, newY, newZ);
+
         }
         //update pos
         for (int i = 0; i < config.n; i++)
         {
-            var newPosX = particles[i].position.X + (float)(particles[i].velocity.X * config.dt);
-            var newPosY = particles[i].position.Y + (float)(particles[i].velocity.Y * config.dt);
-            var newPosZ = particles[i].position.Z + (float)(particles[i].velocity.Z * config.dt);
-            particles[i] = new Particle(new Vector3(newPosX, newPosY, newPosZ), particles[i].velocity, particles[i].colour);
-            //positionsX[i] += velocitiesX[i] * config.dt;
-            //positionsY[i] += velocitiesY[i] * config.dt;
-            //positionsZ[i] += velocitiesZ[i] * config.dt;
+            var newX = particles[i].position.X + (float)(particles[i].velocity.X * config.dt);
+            var newY = particles[i].position.Y + (float)(particles[i].velocity.Y * config.dt);
+            var newZ = particles[i].position.Z + (float)(particles[i].velocity.Z * config.dt);
 
+            if (newX > dim.X) newX = pivot.X + 0.1f;
+            if (newY > dim.Y) newY = pivot.Y + 0.1f;
+            if (newZ > dim.Z) newZ = pivot.Z + 0.1f;
+
+            if (newX < pivot.X) newX = dim.X - 0.1f;
+            if (newY < pivot.Y) newY = dim.Y - 0.1f;
+            if (newZ < pivot.Z) newZ = dim.Z - 0.1f;
+
+            particles[i].position = new Vector3(newX, newY, newZ);
+            spatialHashGrid.updateParticle(particles[i]);
         }
     }
 

@@ -20,10 +20,10 @@ public partial class Main : Node3D
 		ballPivot = GetNode<Node3D>("BallPivot");
 		addBalls();
 		ui.particleAmountChanged += (val) => handleParticleAmountChanged(val);
-		simulation.printMatrix();
 		ui.matrix.setMatrix(simulation.config.matrix, simulation.colourVals);
 		ui.configMenu.init(simulation);
 		setUIActive(true);
+		simulation.step();
 	}
 
 	public void addBalls()
@@ -71,13 +71,12 @@ public partial class Main : Node3D
 		{
 			setUIActive(!uiActive);
 		}
-		var startTime = Utils.startTimeMeasurement();
+		//		var startTime = Utils.startTimeMeasurement();
 		simulation.step();
-		Utils.endTimeMeasurement(startTime, "Step duration");
-		startTime = Utils.startTimeMeasurement();
+		//		Utils.endTimeMeasurement(startTime, "Step duration");
+		//		startTime = Utils.startTimeMeasurement();
 		setBallPositions();
-		Utils.endTimeMeasurement(startTime, "Render duration");
-
+		//	Utils.endTimeMeasurement(startTime, "Render duration");
 	}
 
 	public void setBallPositions()
@@ -86,10 +85,11 @@ public partial class Main : Node3D
 		{
 			return;
 		}
+		var scale = 1f;
 		for (int i = 0; i < balls.Count; i++)
 		{
 			var pos = simulation.particles[i].position;
-			balls[i].Position = Position with { X = pos.X, Y = pos.Y, Z = pos.Z, };
+			balls[i].Position = Position with { X = pos.X * scale, Y = pos.Y * scale, Z = pos.Z * scale, };
 		}
 	}
 }
