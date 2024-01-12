@@ -71,12 +71,12 @@ public partial class Main : Node3D
 		{
 			setUIActive(!uiActive);
 		}
-		//		var startTime = Utils.startTimeMeasurement();
+		var startTime = Utils.startTimeMeasurement();
 		simulation.step();
-		//		Utils.endTimeMeasurement(startTime, "Step duration");
-		//		startTime = Utils.startTimeMeasurement();
+		Utils.endTimeMeasurement(startTime, "Step duration");
+		startTime = Utils.startTimeMeasurement();
 		setBallPositions();
-		//	Utils.endTimeMeasurement(startTime, "Render duration");
+		Utils.endTimeMeasurement(startTime, "Render duration");
 	}
 
 	public void setBallPositions()

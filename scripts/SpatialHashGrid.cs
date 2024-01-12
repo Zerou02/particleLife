@@ -13,6 +13,7 @@ public class SpatialHashGrid
 
     double particleRadius = 0;
     Dictionary<string, List<Particle>> cells = new Dictionary<string, List<Particle>>();
+    public bool debug = false;
     public SpatialHashGrid(Vector3 cellSize, Vector3 dimensions, Vector3 pivot, double particleRadius)
     {
         this.particleRadius = particleRadius;
@@ -22,6 +23,10 @@ public class SpatialHashGrid
         initCells();
     }
 
+    public void setParticleRadius(double radius)
+    {
+        this.particleRadius = radius;
+    }
     public void initCells()
     {
         cells = new Dictionary<string, List<Particle>>();
@@ -39,15 +44,18 @@ public class SpatialHashGrid
     }
     public void addToGrid(Particle particle)
     {
+        var start = Utils.startTimeMeasurement();
         var a = calcGridCells(particle);
         foreach (var x in a)
         {
             cells[x].Add(particle);
         }
+        if (debug) { Utils.endTimeMeasurement(start, "AddToGrid"); }
     }
 
     List<string> calcGridCells(Particle particle)
     {
+        var start = Utils.startTimeMeasurement();
         var retList = new List<string>();
         var leftmostX = (int)(particle.position.X - particleRadius);
         var rightmostX = (int)(particle.position.X + particleRadius);
@@ -73,16 +81,20 @@ public class SpatialHashGrid
                 }
             }
         }
+        if (debug) { Utils.endTimeMeasurement(start, "CalcCells"); }
         return retList;
     }
     public void updateParticle(Particle particle)
     {
+        var start = Utils.startTimeMeasurement();
         removeFromGrid(particle);
         addToGrid(particle);
+        if (debug) Utils.endTimeMeasurement(start, "UpdateParticle");
     }
 
     public void removeFromGrid(Particle particle)
     {
+        var start = Utils.startTimeMeasurement();
         foreach (var x in calcGridCells(particle))
         {
 
@@ -91,15 +103,21 @@ public class SpatialHashGrid
             {
                 continue;
             }
-            cells[x].RemoveAt(idx);
-            /* var last = cells[x][cells[x].Count - 1];
+            var last = cells[x][cells[x].Count - 1];
             cells[x][idx] = last;
-            cells[x].RemoveAt(cells[x].Count - 1); */
+            cells[x].RemoveAt(cells[x].Count - 1);
         }
+        if (debug) Utils.endTimeMeasurement(start, "RemoveParticle");
+    }
+
+    public void clear()
+    {
+        initCells();
     }
 
     public List<Particle> findNearbyClients(Particle particle)
     {
+        var start = Utils.startTimeMeasurement();
         var dict = new Dictionary<int, Particle>();
         var retList = new List<Particle>();
         var indices = this.calcGridCells(particle);
@@ -115,6 +133,7 @@ public class SpatialHashGrid
         {
             retList.Add(x);
         }
+        if (debug) Utils.endTimeMeasurement(start, "FindNearby");
         return retList;
     }
 }

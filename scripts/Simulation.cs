@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata.Ecma335;
+using System.Threading;
 using Godot;
 public class Simulation
 {
@@ -10,23 +10,47 @@ public class Simulation
     public SpatialHashGrid spatialHashGrid;
 
     Vector3 pivot = new Vector3(0, 0, 0);
-    Vector3 dim = new Vector3(1, 1, 1);
+    Vector3 dim = new Vector3(2, 2, 2);
 
-    int scale = 2;
+    List<Thread> threads = new List<Thread>();
+    List<bool> threadSynchronizer = new List<bool>();
+    List<int> ids = new List<int>();
     public Simulation()
     {
         config = new Config();
-        dim *= scale;
-        config.rMax *= (scale);
         spatialHashGrid = new SpatialHashGrid(new Vector3(1, 1, 1), dim, pivot, config.rMax);
+        spatialHashGrid.debug = false;
         initSim();
+    }
+
+    void createThreads(int chunkSize)
+    {
+        var lastI = 0;
+        int id = 0;
+
+        for (int i = 0; i < config.n; i += chunkSize)
+        {
+            ids.Add(i / chunkSize);
+            threadSynchronizer.Add(false);
+            threads.Add(new Thread(() => updateParticleVelocity(i, chunkSize, ids[ids.Count - 1])));
+            lastI = i;
+        }
+        ids.Add(lastI / chunkSize);
+        threadSynchronizer.Add(false);
+        threads.Add(new Thread(() => updateParticleVelocity(lastI, chunkSize, ids[ids.Count - 1])));
+        foreach (var x in threads)
+        {
+            x.Start();
+        }
     }
 
     void initSim()
     {
         clearSim();
         createRandomColours(config.amountColours);
+        spatialHashGrid.clear();
         addParticle(config.n);
+        createThreads(500);
     }
 
     void createRandomColours(int amount)
@@ -39,6 +63,13 @@ public class Simulation
         }
         config.matrix = config.makeRandomMatrix(amount, amount);
     }
+
+    void rebuildHashGrid()
+    {
+        spatialHashGrid.initCells();
+        spatialHashGrid.setParticleRadius(config.rMax);
+        foreach (var x in particles) { spatialHashGrid.addToGrid(x); }
+    }
     void addParticle(int amount)
     {
         var random = new Random();
@@ -46,9 +77,9 @@ public class Simulation
         {
             var colour = random.Next(config.amountColours);
             Vector3 position = Vector3.Zero;
-            position.X = (float)random.NextDouble() * scale; // * 2 - 1;
-            position.Y = (float)random.NextDouble() * scale; // * 2 - 1;
-            position.Z = (float)random.NextDouble() * scale; // * 2 - 1;
+            position.X = (float)random.NextDouble() * dim.X; // * 2 - 1;
+            position.Y = (float)random.NextDouble() * dim.X; // * 2 - 1;
+            position.Z = (float)random.NextDouble() * dim.X; // * 2 - 1;
             Vector3 velocity = Vector3.Zero;
             velocity.X = 0;
             velocity.Y = 0;
@@ -61,8 +92,11 @@ public class Simulation
 
     void removeParticles(int amount)
     {
+        for (int i = particles.Count - amount; i < particles.Count; i++)
+        {
+            spatialHashGrid.removeFromGrid(particles[i]);
+        }
         particles.RemoveRange(particles.Count - amount, amount);
-
     }
 
     void clearSim()
@@ -99,48 +133,60 @@ public class Simulation
             return 0;
         }
     }
-    public void step()
+
+    void updateParticleVelocity(int rangeBegin, int amount, int id)
     {
-        for (int i = 0; i < config.n; i++)
+        while (true)
         {
-            double totalForceX = 0;
-            double totalForceY = 0;
-            double totalForceZ = 0;
 
-            var b = spatialHashGrid.findNearbyClients(particles[i]);
-            GD.Print(b.Count);
-            foreach (var j in b)
+            GD.Print(id);
+            if (threadSynchronizer[id])
             {
-                if (j.id == particles[i].id) { continue; }
-
-                double rx = j.position.X - particles[i].position.X;
-                double ry = j.position.Y - particles[i].position.Y;
-                double rz = j.position.Z - particles[i].position.Z;
-                double r = Math.Sqrt(rx * rx + ry * ry + rz * rz);
-                if (r > 0 && r < config.rMax)
-                {
-                    double f = force(r / config.rMax, config.matrix[particles[i].colour][j.colour]);
-                    totalForceX += rx / r * f;
-                    totalForceY += ry / r * f;
-                    totalForceZ += rz / r * f;
-
-                }
+                return;
             }
-            totalForceX *= config.rMax;
-            totalForceY *= config.rMax;
-            totalForceZ *= config.rMax;
+            for (int i = rangeBegin; i < Math.Min(amount + rangeBegin, config.n); i++)
+            {
+                double totalForceX = 0;
+                double totalForceY = 0;
+                double totalForceZ = 0;
 
-            var newX = particles[i].velocity.X * (float)config.frictionFactor;
-            var newY = particles[i].velocity.Y * (float)config.frictionFactor;
-            var newZ = particles[i].velocity.Z * (float)config.frictionFactor;
+                foreach (var j in spatialHashGrid.findNearbyClients(particles[i]))
+                {
+                    if (j.id == particles[i].id) { continue; }
 
-            newX += (float)(totalForceX * config.dt);
-            newY += (float)(totalForceY * config.dt);
-            newZ += (float)(totalForceZ * config.dt);
-            particles[i].velocity = new Vector3(newX, newY, newZ);
+                    double rx = j.position.X - particles[i].position.X;
+                    double ry = j.position.Y - particles[i].position.Y;
+                    double rz = j.position.Z - particles[i].position.Z;
+                    double r = Math.Sqrt(rx * rx + ry * ry + rz * rz);
+                    if (r > 0 && r < config.rMax)
+                    {
+                        double f = force(r / config.rMax, config.matrix[particles[i].colour][j.colour]);
+                        totalForceX += rx / r * f;
+                        totalForceY += ry / r * f;
+                        totalForceZ += rz / r * f;
 
+                    }
+                }
+                totalForceX *= config.rMax;
+                totalForceY *= config.rMax;
+                totalForceZ *= config.rMax;
+
+                var newX = particles[i].velocity.X * (float)config.frictionFactor;
+                var newY = particles[i].velocity.Y * (float)config.frictionFactor;
+                var newZ = particles[i].velocity.Z * (float)config.frictionFactor;
+
+                newX += (float)(totalForceX * config.dt);
+                newY += (float)(totalForceY * config.dt);
+                newZ += (float)(totalForceZ * config.dt);
+                particles[i].velocity = new Vector3(newX, newY, newZ);
+            }
+            threadSynchronizer[id] = true;
+            GD.Print("ENDINNER");
         }
-        //update pos
+    }
+
+    void updatePos()
+    {
         for (int i = 0; i < config.n; i++)
         {
             var newX = particles[i].position.X + (float)(particles[i].velocity.X * config.dt);
@@ -159,10 +205,29 @@ public class Simulation
             spatialHashGrid.updateParticle(particles[i]);
         }
     }
+    public void step()
+    {
+        var amountFinished = 0;
+        foreach (var x in threadSynchronizer)
+        {
+            if (x) amountFinished++;
+        }
+        GD.Print(amountFinished);
+        if (amountFinished != threadSynchronizer.Count)
+        {
+            updatePos();
+            for (int i = 0; i < threadSynchronizer.Count; i++)
+            {
+                threadSynchronizer[i] = false;
+            }
+        }
+
+    }
 
     public void changeRadiusTo(double val)
     {
         this.config.rMax = val;
+        rebuildHashGrid();
     }
 
     public void changeSpeedTo(double val)
