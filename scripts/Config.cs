@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class Config
 {
-    public int n = 1000;
+    public int n = 500;
     public double dt = 0.02;
     public double frictionHalfLife = 0.04;
     public double rMax = 0.4;

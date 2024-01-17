@@ -11,7 +11,7 @@ public class Simulation
     Vector3 pivot = new Vector3(0, 0, 0);
     Vector3 dim = new Vector3(1, 1, 1);
 
-    int scale = 2;
+    int scale = 1;
     public Simulation()
     {
         config = new Config();
@@ -91,7 +91,7 @@ public class Simulation
         }
         else if (beta < r && r < 1)
         {
-            return a * (1 - Math.Abs(2 * r - 1 - beta) / (1 - beta));
+            return a * (1.0 - Math.Abs(2 * r - 1 - beta) / (1.0 - beta));
         }
         else
         {
@@ -107,7 +107,6 @@ public class Simulation
             double totalForceZ = 0;
 
             var b = spatialHashGrid.findNearbyClients(particles[i]);
-            GD.Print(b.Count);
             foreach (var j in b)
             {
                 if (j.id == particles[i].id) { continue; }
@@ -122,7 +121,6 @@ public class Simulation
                     totalForceX += rx / r * f;
                     totalForceY += ry / r * f;
                     totalForceZ += rz / r * f;
-
                 }
             }
             totalForceX *= config.rMax;
